@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Warehouse.API.Tenants;
 
 namespace Warehouse.API.Outbounds
 {
@@ -8,6 +9,8 @@ namespace Warehouse.API.Outbounds
     {
         // POST api/outbounds
         [HttpPost]
+        [TenantAuthorized]
+        // don't forget to put x-client-id header with value fac2add8-406c-4aa6-a03b-0333123c9dfc
         public OutboundResponse Post([FromBody]OutboundRequest request)
         {
             //todo: figure out what to send to DPD

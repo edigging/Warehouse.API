@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Warehouse.API.Tenants;
 
 namespace Warehouse.API
 {
@@ -28,6 +29,10 @@ namespace Warehouse.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+
+            services.RegisterTenantAuthorization();
+            services.AddMultitenancy<Tenant, TenantResolver>();
+
             services.AddMvc();
         }
 
@@ -37,6 +42,7 @@ namespace Warehouse.API
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseMultitenancy<Tenant>();
             app.UseMvc();
         }
     }
