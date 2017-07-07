@@ -21,6 +21,46 @@ Example body:
 		
 	}
 ```
+
+**Response: 200 OK**
+
+```json
+{  
+  
+}
+
+
+```
+
+Any status except 200 OK should be considered as an error.
+
+**Response: 401 Unauthorized** - when x-client-id is missing or is wrong
+
+**Response: 400 Bad Request** - for custom errors
+```
+{
+  "code": 400,
+  "message": "Internal Error"
+}
+```
+
+
+### * Creating a new outbound request (Signed Version) 
+
+> `POST /outbounds/postSigned`
+
+Example body:
+
+```json 
+
+{
+	"Payload":{
+		"Code" : "123"
+	},
+	"Signature": "d0d80751fef9786466b696e8560425660663a771"
+}
+```
+
 **Response: 200 OK**
 
 ```json
