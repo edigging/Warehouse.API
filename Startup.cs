@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Warehouse.API.Tenants;
 using Warehouse.API.Configuration;
 using Warehouse.API.Services;
 
@@ -26,6 +27,10 @@ namespace Warehouse.API
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+
+            services.RegisterTenantAuthorization();
+            services.AddMultitenancy<Tenant, TenantResolver>();
+
             services.AddMvc();
 
             services.AddScoped<IGeoshipClient, GeoshipClient>();
@@ -42,6 +47,7 @@ namespace Warehouse.API
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseMultitenancy<Tenant>();
             app.UseMiddleware(typeof(ErrorHandlingMiddleware));
             app.UseMvc();
         }
