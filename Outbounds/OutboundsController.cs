@@ -1,34 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Warehouse.API.Services;
+using Warehouse.API.Models;
 
 namespace Warehouse.API.Outbounds
 {
-
     [Route("api/[controller]")]
     public class OutboundsController : Controller
     {
+        IGeoshipClient _geoshipClient;
+        IEmailNotificationService _emailNotificationService;
+
+        public OutboundsController(IGeoshipClient geoshipClient, IEmailNotificationService emailNotificationService)
+        {
+            _geoshipClient = geoshipClient;
+            _emailNotificationService = emailNotificationService;
+        }
+
         // POST api/outbounds
         [HttpPost]
-        public OutboundResponse Post([FromBody]OutboundRequest request)
+        public async Task<OutboundResponse> Post([FromBody]OutboundRequest request)
         {
-            //todo: figure out what to send to DPD
+            var response = await _geoshipClient.SaveShipmentAndCreateLabel(new SaveShipmentRequest {
+                ProductPrice = request.ProductPrice,
+                ReceiverFirstName = request.ReceiverFirstName,
+                ReceiverLastName = request.ReceiverLastName,
+                ReceiverPhoneNumber = request.ReceiverPhoneNumber,
+                ReceiverHouseNumber = request.ReceiverHouseNumber,
+                ReceiverAddressText = request.ReceiverAddressText,
+                ReceiverAddressAdditionalInfo = request.ReceiverAddressAdditionalInfo,
+                ReceiverCountry = request.ReceiverCountry,
+                ReceiverZipCode = request.ReceiverZipCode
+            });
 
-            //todo: figure out what to return back
+            await _emailNotificationService.SendNotificationToWarehouse(new SendNotificationRequest {
+                OrderNumber = request.OrderNumber,
+                ProductName = request.ProductName,
+                ProductQuantity = request.ProductQuantity,
+                LabelPdfBinaryDataBase64Encoded = response.LabelPdfBinaryDataBase64Encoded
+            });
 
-            return new OutboundResponse();
+            return new OutboundResponse
+            {
+                TrackingNumber = response.TrackingNumber
+            };
         }
     }
-
-    #region Messages
-
-    public class OutboundRequest
-    {
-
-    }
-
-    public class OutboundResponse
-    {
-
-    }
-
-    #endregion
 }

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Warehouse.API.Configuration;
+using Warehouse.API.Services;
 
 namespace Warehouse.API
 {
@@ -29,6 +27,13 @@ namespace Warehouse.API
         {
             // Add framework services.
             services.AddMvc();
+
+            services.AddScoped<IGeoshipClient, GeoshipClient>();
+            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+
+            services.AddOptions();
+            services.Configure<GeoshipLoginData>(Configuration.GetSection("GeoshipLoginData"));
+            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,6 +42,7 @@ namespace Warehouse.API
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
             app.UseMvc();
         }
     }
