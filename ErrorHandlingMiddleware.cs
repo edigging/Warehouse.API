@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using Warehouse.API.Exceptions;
 
 namespace Warehouse.API
 {
@@ -31,7 +32,16 @@ namespace Warehouse.API
         {
             var code = HttpStatusCode.InternalServerError;
 
-            var result = JsonConvert.SerializeObject(new { error = exception.Message, stackTrace = exception.StackTrace });
+            if (exception is BadRequestException)
+            {
+                code = HttpStatusCode.BadRequest;
+            }
+            if (exception is UnauthorizedAccessException)
+            {
+                code = HttpStatusCode.Unauthorized;
+            }
+
+            var result = string.IsNullOrWhiteSpace(exception.Message) ? "" : JsonConvert.SerializeObject(new { error = exception.Message });
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
             return context.Response.WriteAsync(result);

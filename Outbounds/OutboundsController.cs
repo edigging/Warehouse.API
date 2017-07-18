@@ -5,6 +5,7 @@ using Warehouse.API.Tenants;
 using Warehouse.API.Services;
 using Warehouse.API.Models;
 using System;
+using Warehouse.API.Exceptions;
 
 namespace Warehouse.API.Outbounds
 {
@@ -13,11 +14,11 @@ namespace Warehouse.API.Outbounds
     {
         IGeoshipClient _geoshipClient;
         IEmailNotificationService _emailNotificationService;
-        public Tenant Tenant { get; set; }
+        public Tenant _tenant;
 
         public OutboundsController(Tenant tenant, IGeoshipClient geoshipClient, IEmailNotificationService emailNotificationService)
         {
-            Tenant = tenant;
+            _tenant = tenant;
             _geoshipClient = geoshipClient;
             _emailNotificationService = emailNotificationService;
         }
@@ -43,7 +44,7 @@ namespace Warehouse.API.Outbounds
         [HttpPost("[action]")]
         public async Task<OutboundResponse> PostSigned([FromBody]Signed<OutboundRequest> request)
         {
-            if (request.IsValid(Tenant.HMACKey))
+            if (request.IsValid(_tenant.HMACKey))
             {
                 var response = await _geoshipClient.SaveShipmentAndCreateLabel(new SaveShipmentRequest
                 {
@@ -72,7 +73,7 @@ namespace Warehouse.API.Outbounds
                 };
             }
 
-            throw new Exception("Bad Request");
+            throw new BadRequestException();
         }
     }
 }

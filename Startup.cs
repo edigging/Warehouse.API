@@ -34,6 +34,7 @@ namespace Warehouse.API
             services.AddMvc();
 
             services.AddScoped<IGeoshipClient, GeoshipClient>();
+            services.AddScoped<IDPDPublicApiClient, DPDPublicApiClient>();
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 
             services.AddOptions();

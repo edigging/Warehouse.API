@@ -394,7 +394,8 @@ namespace Warehouse.API.Services
             //    manifestId: long.Parse(closeManifestResponse.closeManifest4GeoshipLabelResponse.result.row[0].key)
             //);
 
-            //return new SaveShipmentResponse {
+            //return new SaveShipmentResponse
+            //{
             //    TrackingNumber = closeManifestResponse.closeManifest4GeoshipLabelResponse.result.row[0].value[0],
             //    LabelPdfBinaryDataBase64Encoded = Convert.ToBase64String(generateLabelResponse.generateLabelResponse.result)
             //};
