@@ -1,11 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using Warehouse.API.Models;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System;
-using System.Globalization;
 
 namespace Warehouse.API.Services
 {
@@ -21,17 +21,16 @@ namespace Warehouse.API.Services
 
             var tcs = new TaskCompletionSource<TrackingStatusResponse>();
 
-            client.ExecuteAsync(restRrequest, restResponse => {
-
-                
-
-                var statusJSson = JsonConvert.DeserializeObject<JObject>(restResponse.Content.Trim('(', ')'));
-
-                var response = new TrackingStatusResponse();
-                response.TrackingNumber = statusJSson.SelectToken("TrackingStatusJSON.shipmentInfo.parcelNumber").Value<string>();
+            client.ExecuteAsync(restRrequest, restResponse =>
+            {
+                var response = new TrackingStatusResponse()
+                {
+                    TrackingNumber = request.TrackingNumber
+                };
 
                 if (restResponse.Content.IndexOf("TrackingStatusJSON") > -1)
                 {
+                    var statusJSson = JsonConvert.DeserializeObject<JObject>(restResponse.Content.Trim('(', ')'));
                     response.DeliveryStatus = statusJSson.SelectToken("TrackingStatusJSON.shipmentInfo.deliveryStatusMessage").Value<string>();
                     response.TrackingInfo = new List<TrackingStatus>();
 
