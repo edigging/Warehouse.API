@@ -6,6 +6,6 @@ namespace Warehouse.API.Models
     {
         public string TrackingNumber { get; set; }
         public string DeliveryStatus { get; set; }
-        public IList<TrackingStatus> TrackingInfo { get; set; }
+        public IList<TrackingStatusDto> TrackingInfo { get; set; }
     }
 }

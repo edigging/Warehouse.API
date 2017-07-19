@@ -32,13 +32,13 @@ namespace Warehouse.API.Services
                 {
                     var statusJSson = JsonConvert.DeserializeObject<JObject>(restResponse.Content.Trim('(', ')'));
                     response.DeliveryStatus = statusJSson.SelectToken("TrackingStatusJSON.shipmentInfo.deliveryStatusMessage").Value<string>();
-                    response.TrackingInfo = new List<TrackingStatus>();
+                    response.TrackingInfo = new List<TrackingStatusDto>();
 
                     foreach (JObject statusInfo in statusJSson.SelectToken("TrackingStatusJSON.statusInfos").Value<JArray>())
                     {
                         if (statusInfo.Value<string>("detailLevel") != "0") continue;
 
-                        response.TrackingInfo.Add(new TrackingStatus
+                        response.TrackingInfo.Add(new TrackingStatusDto
                         {
                             DateAndTime = DateTime.ParseExact($"{statusInfo["date"]} {statusInfo["time"]}".Trim(), "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None),
                             Place = statusInfo.Value<string>("city"),

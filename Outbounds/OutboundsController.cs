@@ -4,8 +4,6 @@ using Warehouse.API.Cross_Cutting.Signatures;
 using Warehouse.API.Tenants;
 using Warehouse.API.Services;
 using Warehouse.API.Models;
-using System;
-using Warehouse.API.Exceptions;
 
 namespace Warehouse.API.Outbounds
 {
@@ -27,53 +25,66 @@ namespace Warehouse.API.Outbounds
         [HttpPost]
         [TenantAuthorized]
         // don't forget to put x-client-id header with value fac2add8-406c-4aa6-a03b-0333123c9dfc
-        public OutboundResponse Post([FromBody]OutboundRequest request)
+        public IActionResult Post([FromBody]OutboundRequest request)
         {
-            //todo: figure out what to send to DPD
+            if (ModelState.IsValid)
+            {
+                var signed = Signed<OutboundRequest>.Build(request, _tenant.HMACKey);
 
-            //todo: figure out what to return back
+                //{ "OrderNumber":"5","Product":{ "Name":"Elier","Quantity":2,"Price":41.50},"Receiver":{ "FirstName":"Test","LastName":"Receiver","PhoneNumber":"23456789","HouseNumber":"122","AddressText":"somewhere in Riga","AddressAdditionalInfo":"apt. 35","Country":"LATVIA","ZipCode":"1058"} }
+                //61156e9c9b30ae5765e646ea7a5781bc5af0944d
 
-            var signed = Signed<OutboundRequest>.Build(request, "9779e484-139a-4b40-9361-628742811e53");
-            //d0d80751fef9786466b696e8560425660663a771
-
-            return new OutboundResponse();
+                return new JsonResult(new { signature = signed.Signature });
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
 
         [TenantAuthorized]
         [HttpPost("[action]")]
-        public async Task<OutboundResponse> PostSigned([FromBody]Signed<OutboundRequest> request)
+        public async Task<IActionResult> PostSigned([FromBody]Signed<OutboundRequest> request)
         {
             if (request.IsValid(_tenant.HMACKey))
             {
-                var response = await _geoshipClient.SaveShipmentAndCreateLabel(new SaveShipmentRequest
+                if (ModelState.IsValid)
                 {
-                    ProductPrice = request.Payload.ProductPrice,
-                    ReceiverFirstName = request.Payload.ReceiverFirstName,
-                    ReceiverLastName = request.Payload.ReceiverLastName,
-                    ReceiverPhoneNumber = request.Payload.ReceiverPhoneNumber,
-                    ReceiverHouseNumber = request.Payload.ReceiverHouseNumber,
-                    ReceiverAddressText = request.Payload.ReceiverAddressText,
-                    ReceiverAddressAdditionalInfo = request.Payload.ReceiverAddressAdditionalInfo,
-                    ReceiverCountry = request.Payload.ReceiverCountry,
-                    ReceiverZipCode = request.Payload.ReceiverZipCode
-                });
+                    var response = await _geoshipClient.SaveShipmentAndCreateLabel(new SaveShipmentRequest
+                    {
+                        ProductPrice = request.Payload.Product.Price,
+                        ReceiverFirstName = request.Payload.Receiver.FirstName,
+                        ReceiverLastName = request.Payload.Receiver.LastName,
+                        ReceiverPhoneNumber = request.Payload.Receiver.PhoneNumber,
+                        ReceiverHouseNumber = request.Payload.Receiver.HouseNumber,
+                        ReceiverAddressText = request.Payload.Receiver.AddressText,
+                        ReceiverAddressAdditionalInfo = request.Payload.Receiver.AddressAdditionalInfo,
+                        ReceiverCountry = request.Payload.Receiver.Country,
+                        ReceiverZipCode = request.Payload.Receiver.ZipCode
+                    });
 
-                await _emailNotificationService.SendNotificationToWarehouse(new SendNotificationRequest
-                {
-                    OrderNumber = request.Payload.OrderNumber,
-                    ProductName = request.Payload.ProductName,
-                    ProductQuantity = request.Payload.ProductQuantity,
-                    LabelPdfBinaryDataBase64Encoded = response.LabelPdfBinaryDataBase64Encoded
-                });
+                    await _emailNotificationService.SendNotificationToWarehouse(new SendNotificationRequest
+                    {
+                        ClientName = _tenant.Name,
+                        OrderNumber = request.Payload.OrderNumber,
+                        ProductName = request.Payload.Product.Name,
+                        ProductQuantity = request.Payload.Product.Quantity,
+                        LabelPdfBinaryDataBase64Encoded = response.LabelPdfBinaryDataBase64Encoded
+                    });
 
-                return new OutboundResponse
+                    return new JsonResult(new OutboundResponse
+                    {
+                        TrackingNumber = response.TrackingNumber
+                    });
+                }
+                else
                 {
-                    TrackingNumber = response.TrackingNumber
-                };
+                    return BadRequest(ModelState);
+                }
             }
 
-            throw new BadRequestException();
+            return BadRequest();
         }
     }
 }

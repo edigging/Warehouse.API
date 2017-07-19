@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Warehouse.API.Cross_Cutting.Signatures;
-using Warehouse.API.Exceptions;
 using Warehouse.API.Models;
 using Warehouse.API.Services;
 using Warehouse.API.Tenants;
@@ -24,7 +23,7 @@ namespace Warehouse.API.Tracking
 
         [TenantAuthorized]
         [HttpPost("[action]")]
-        public async Task<TrackingResponse> GetStatusByTrackingNumber([FromBody]Signed<TrackingRequest> request)
+        public async Task<IActionResult> GetStatusByTrackingNumber([FromBody]Signed<TrackingRequest> request)
         {
             if (request.IsValid(_tenant.HMACKey))
             {
@@ -38,10 +37,10 @@ namespace Warehouse.API.Tracking
                     response.Statuses.Add(statusInfo);
                 }
 
-                return response;
+                return new JsonResult(response);
             }
 
-            throw new BadRequestException();
+            return BadRequest();
         }
     }
 }

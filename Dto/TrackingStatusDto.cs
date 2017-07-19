@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Warehouse.API.Models
 {
-    public class TrackingStatus
+    public class TrackingStatusDto
     {
         public DateTime DateAndTime { get; set; }
         public string Place { get; set; }

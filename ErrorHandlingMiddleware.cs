@@ -3,7 +3,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using Warehouse.API.Exceptions;
 
 namespace Warehouse.API
 {
@@ -32,10 +31,6 @@ namespace Warehouse.API
         {
             var code = HttpStatusCode.InternalServerError;
 
-            if (exception is BadRequestException)
-            {
-                code = HttpStatusCode.BadRequest;
-            }
             if (exception is UnauthorizedAccessException)
             {
                 code = HttpStatusCode.Unauthorized;

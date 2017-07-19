@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -21,6 +22,7 @@ namespace Warehouse.API.Services
         public async Task SendNotificationToWarehouse(SendNotificationRequest sendNotificationRequest)
         {
             var mailBody = new StringBuilder();
+            mailBody.AppendFormat("<strong>Client:</strong> {0}<br/>", sendNotificationRequest.ClientName);
             mailBody.AppendFormat("<strong>Order #:</strong> {0}<br/>", sendNotificationRequest.OrderNumber);
             mailBody.AppendFormat("<strong>Name of product:</strong> {0}<br/>", sendNotificationRequest.ProductName);
             mailBody.AppendFormat("<strong>Quantity:</strong> {0} pc<br/>", sendNotificationRequest.ProductQuantity);
@@ -41,8 +43,21 @@ namespace Warehouse.API.Services
 
             msg.Attachments = new List<Attachment>() { labelPdfAttachment };
 
+            foreach (var ccEmail in _emailSettings.WarehouseNotificationEmailCC.Split(new char[1] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                msg.AddCc(ccEmail.Trim());
+            }
+
+            foreach (var bccEmail in _emailSettings.WarehouseNotificationEmailBCC.Split(new char[1] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                msg.AddBcc(bccEmail.Trim());
+            }
+
             var client = new SendGridClient(_emailSettings.SendGridApiKey);
+
             await client.SendEmailAsync(msg);
         }
+
+
     }
 }
