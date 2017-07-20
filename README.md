@@ -82,3 +82,11 @@ Any status except 200 OK should be considered as an error.
   "message": "Internal Error"
 }
 ```
+
+### For devs
+
+## Test Harness
+
+> http://localhost:58369/api/testharness/outbound
+
+> http://localhost:58369/api/testharness/tracking
