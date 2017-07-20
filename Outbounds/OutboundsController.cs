@@ -19,28 +19,7 @@ namespace Warehouse.API.Outbounds
             _tenant = tenant;
             _geoshipClient = geoshipClient;
             _emailNotificationService = emailNotificationService;
-        }
-
-        // POST api/outbounds
-        [HttpPost]
-        [TenantAuthorized]
-        // don't forget to put x-client-id header with value fac2add8-406c-4aa6-a03b-0333123c9dfc
-        public IActionResult Post([FromBody]OutboundRequest request)
-        {
-            if (ModelState.IsValid)
-            {
-                var signed = Signed<OutboundRequest>.Build(request, _tenant.HMACKey);
-
-                //{ "OrderNumber":"5","Product":{ "Name":"Elier","Quantity":2,"Price":41.50},"Receiver":{ "FirstName":"Test","LastName":"Receiver","PhoneNumber":"23456789","HouseNumber":"122","AddressText":"somewhere in Riga","AddressAdditionalInfo":"apt. 35","Country":"LATVIA","ZipCode":"1058"} }
-                //61156e9c9b30ae5765e646ea7a5781bc5af0944d
-
-                return new JsonResult(new { signature = signed.Signature });
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
-        }
+        }    
 
 
         [TenantAuthorized]
